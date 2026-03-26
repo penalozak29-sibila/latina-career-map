@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Career Cluster Map</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --border: #1e1e2e;
+    --text: #e8e8f0;
+    --muted: #6b6b85;
+    --accent: #c8a96e;
+    --accent2: #7c9bcc;
+    --danger: #cc7c7c;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    padding: 1.2rem 1.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+  }
+
+  .main {
+    display: flex;
+    height: calc(100vh - 68px);
+  }
+
+  #chart-area {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #chart-area svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Desktop panel */
+  .panel {
+    width: 300px;
+    border-left: 1px solid var(--border);
+    background: var(--surface);
+    overflow-y: auto;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-header {
+    padding: 1.2rem 1.4rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-close {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 0.2rem;
+  }
+
+  .panel-empty {
+    padding: 2rem 1.4rem;
+    color: var(--muted);
+    font-size: 0.7rem;
+    line-height: 1.8;
+    letter-spacing: 0.04em;
+  }
+
+  /* Mobile tap hint */
+  .tap-hint {
+    display: none;
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-align: center;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  /* Mobile styles */
+  @media (max-width: 640px) {
+    header {
+      padding: 0.9rem 1rem 0.7rem;
+    }
+    h1 {
+      font-size: 1.15rem;
+    }
+    .main {
+      flex-direction: column;
+      height: calc(100vh - 56px);
+    }
+    #chart-area {
+      flex: 1;
+      min-height: 0;
+    }
+    .panel {
+      width: 100%;
+      border-left: none;
+      border-top: 1px solid var(--border);
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1);
+      flex-shrink: 0;
+    }
+    .panel.open {
+      max-height: 55vh;
+      overflow-y: auto;
+    }
+    .panel-close {
+      display: block;
+    }
+    .tap-hint {
+      display: block;
+    }
+    .legend {
+      bottom: 0.5rem;
+      left: 0.5rem;
+    }
+  }
+
+  .industry-section {
+    padding: 1rem 1.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .industry-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 0.8rem;
+  }
+
+  .industry-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .job-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    gap: 0.5rem;
+  }
+
+  .job-title {
+    font-size: 0.72rem;
+    color: var(--text);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .job-salary {
+    font-size: 0.68rem;
+    color: var(--accent);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .stats-bar {
+    margin-top: 0.5rem;
+    display: flex;
+    gap: 1rem;
+  }
+
+  .stat {
+    font-size: 0.62rem;
+    color: var(--muted);
+  }
+
+  .stat strong {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text);
+    font-weight: 400;
+  }
+
+  /* Bubble styles via D3 */
+  .bubble {
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .bubble:hover { opacity: 0.85; }
+
+  .bubble-label {
+    pointer-events: none;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    fill: rgba(255,255,255,0.9);
+  }
+
+  .bubble-sublabel {
+    pointer-events: none;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    fill: rgba(255,255,255,0.5);
+  }
+
+  .tooltip {
+    position: absolute;
+    background: #1a1a28;
+    border: 1px solid var(--border);
+    padding: 0.7rem 1rem;
+    font-size: 0.68rem;
+    pointer-events: none;
+    max-width: 200px;
+    line-height: 1.6;
+    z-index: 10;
+    display: none;
+  }
+
+  .tooltip .tt-industry { color: var(--accent); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; }
+  .tooltip .tt-jobs { color: var(--muted); }
+  .tooltip .tt-salary { color: var(--accent2); margin-top: 0.3rem; }
+
+  .legend {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 1.5rem;
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .legend-circle {
+    border-radius: 50%;
+    opacity: 0.6;
+    flex-shrink: 0;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 1rem;
+    color: var(--muted);
+  }
+
+  .empty-state svg { opacity: 0.3; }
+
+  .empty-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    color: var(--muted);
+  }
+
+  .empty-sub {
+    font-size: 0.68rem;
+    text-align: center;
+    max-width: 280px;
+    line-height: 1.8;
+    letter-spacing: 0.04em;
+  }
+
+  .selected-ring {
+    fill: none;
+    stroke: white;
+    stroke-width: 2;
+    pointer-events: none;
+    opacity: 0.8;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Latina Career Cluster Map</h1>
+    <div style="font-family:'DM Mono',monospace; font-size:0.68rem; color:var(--muted); margin-top:0.35rem; letter-spacing:0.06em;">
+      Created by <span style="color:var(--accent)">Karina Peñaloza</span> &nbsp;·&nbsp; Updated: March 2026
+    </div>
+  </div>
+</header>
+
+
+<div class="main">
+  <div id="chart-area">
+    <div class="empty-state" id="empty-state">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="#6b6b85" stroke-width="1.5">
+        <circle cx="20" cy="32" r="12"/>
+        <circle cx="44" cy="20" r="8"/>
+        <circle cx="46" cy="44" r="10"/>
+        <line x1="20" y1="32" x2="44" y2="20" stroke-dasharray="3 3"/>
+        <line x1="44" y1="20" x2="46" y2="44" stroke-dasharray="3 3"/>
+      </svg>
+      <div class="empty-title">No data yet</div>
+      <div class="empty-sub">Loading data...</div>
+    </div>
+    <div class="tooltip" id="tooltip"></div>
+    <div class="legend" id="legend" style="display:none"></div>
+    <div class="tap-hint" id="tap-hint">Tap a bubble to explore ↑</div>
+  </div>
+  <div class="panel" id="panel">
+    <div class="panel-header">Detail View <button class="panel-close" id="panel-close" onclick="closePanel()">✕</button></div>
+    <div class="panel-empty">Tap a bubble to explore job titles and salaries.</div>
+  </div>
+</div>
+
+<script>
+const PALETTE = [
+  '#c8a96e','#7c9bcc','#7ccc9b','#cc7c9b','#cc9b7c',
+  '#9b7ccc','#7ccccc','#cccc7c','#cc7c7c','#7c7ccc',
+  '#a9cc7c','#cc7ca9','#7cccb0','#ccb07c','#8a7ccc'
+];
+
+const SAMPLE_DATA = [
+  {industry:'Engineering',job_title:'Process Engineer',salary:200000},
+  {industry:'Technology',job_title:'Data Analytics',salary:112000},
+  {industry:'Technology',job_title:'Product Management + Freelance Consulting',salary:400000},
+  {industry:'Technology',job_title:'Software Solutions Architect',salary:160000},
+  {industry:'Finance',job_title:'Financial Planning Director',salary:210000},
+  {industry:'Healthcare',job_title:'Nurse',salary:100000},
+  {industry:'Engineering',job_title:'Chemical Engineer / Project Manager',salary:200000},
+  {industry:'Technology',job_title:'Software Engineer',salary:110000},
+  {industry:'Finance',job_title:'Commercial Lender',salary:100000},
+  {industry:'Legal',job_title:'Immigration Court Interpreter',salary:100000},
+  {industry:'Legal',job_title:'Court Reporter',salary:135000},
+  {industry:'Finance',job_title:'Asset Manager',salary:265000},
+  {industry:'Hospitality',job_title:'Bartender',salary:100000},
+  {industry:'Engineering',job_title:'Electrical Engineer',salary:110000},
+  {industry:'Finance',job_title:'Finance Director',salary:230000},
+  {industry:'Healthcare',job_title:'Private Nurse',salary:200000},
+  {industry:'Technology',job_title:'Software Engineer',salary:143000},
+  {industry:'Creative',job_title:'Creative Director (Fashion)',salary:100000},
+  {industry:'Legal',job_title:'Paralegal',salary:110000},
+  {industry:'Technology',job_title:'Software Engineer (FAANG)',salary:400000},
+  {industry:'Real Estate',job_title:'Real Estate Investor',salary:200000},
+  {industry:'Finance',job_title:'Corporate Finance',salary:200000},
+  {industry:'Technology',job_title:'Software Engineer',salary:100000},
+  {industry:'Technology',job_title:'Software Engineer',salary:250000},
+  {industry:'Sales',job_title:'Sales',salary:200000},
+  {industry:'HR',job_title:'HR Manager',salary:110000},
+  {industry:'Legal',job_title:'Attorney',salary:197000},
+  {industry:'Finance',job_title:'Accountant',salary:120000},
+  {industry:'HR',job_title:'HR Manager',salary:155000},
+];
+
+let currentData = [];
+let selectedIndustry = null;
+
+function fmt(n) {
+  if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return '$' + Math.round(n/1000) + 'k';
+  return '$' + n;
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const sep = lines[0].includes('\t') ? '\t' : ',';
+  const headers = lines[0].split(sep).map(h => h.trim().toLowerCase().replace(/['"]/g,''));
+
+  const idxIndustry = headers.findIndex(h => h.includes('industry') || h.includes('sector') || h.includes('field'));
+  const idxJob = headers.findIndex(h => h.includes('job') || h.includes('title') || h.includes('role') || h.includes('position'));
+  const idxSalary = headers.findIndex(h => h.includes('salary') || h.includes('pay') || h.includes('compensation') || h.includes('wage'));
+
+  if (idxIndustry === -1 || idxJob === -1 || idxSalary === -1) {
+    alert('Could not detect columns. Ensure your file has: industry, job_title, salary');
+    return null;
+  }
+
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(sep).map(c => c.trim().replace(/^["']|["']$/g,''));
+    if (cols.length < 3) continue;
+    const salary = parseFloat(cols[idxSalary].replace(/[$,\s]/g,''));
+    if (!isNaN(salary) && cols[idxIndustry] && cols[idxJob]) {
+      rows.push({ industry: cols[idxIndustry], job_title: cols[idxJob], salary });
+    }
+  }
+  return rows;
+}
+
+function buildClusters(data) {
+  const map = {};
+  data.forEach(d => {
+    if (!map[d.industry]) map[d.industry] = [];
+    map[d.industry].push(d);
+  });
+
+  return Object.entries(map).map(([industry, jobs], i) => {
+    const salaries = jobs.map(j => j.salary);
+    return {
+      industry,
+      jobs,
+      count: jobs.length,
+      avgSalary: salaries.reduce((a,b) => a+b, 0) / salaries.length,
+      minSalary: Math.min(...salaries),
+      maxSalary: Math.max(...salaries),
+      color: PALETTE[i % PALETTE.length]
+    };
+  });
+}
+
+function render(data) {
+  currentData = data;
+  selectedIndustry = null;
+  updatePanel(null, null);
+
+  const clusters = buildClusters(data);
+  const container = document.getElementById('chart-area');
+  const empty = document.getElementById('empty-state');
+  empty.style.display = 'none';
+
+  const W = container.clientWidth;
+  const H = container.clientHeight;
+
+  d3.select('#chart-area svg').remove();
+  const svg = d3.select('#chart-area').append('svg')
+    .attr('width', W).attr('height', H);
+
+  // Background grid
+  const defs = svg.append('defs');
+  const pattern = defs.append('pattern')
+    .attr('id','grid').attr('width',40).attr('height',40)
+    .attr('patternUnits','userSpaceOnUse');
+  pattern.append('path').attr('d','M 40 0 L 0 0 0 40')
+    .attr('fill','none').attr('stroke','rgba(255,255,255,0.03)').attr('stroke-width',1);
+  svg.append('rect').attr('width',W).attr('height',H).attr('fill','url(#grid)');
+
+  // Size scale based on count and avg salary
+  const maxCount = Math.max(...clusters.map(c => c.count));
+  const isMobile = window.innerWidth <= 640;
+  const rScale = d3.scaleSqrt().domain([1, maxCount]).range(isMobile ? [28, 65] : [45, 110]);
+
+  // Simulate force layout
+  const nodes = clusters.map(c => ({
+    ...c,
+    r: rScale(c.count),
+    x: W/2 + (Math.random()-0.5)*200,
+    y: H/2 + (Math.random()-0.5)*200
+  }));
+
+  const sim = d3.forceSimulation(nodes)
+    .force('charge', d3.forceManyBody().strength(20))
+    .force('center', d3.forceCenter(W/2, H/2))
+    .force('collision', d3.forceCollide(d => d.r + 14))
+    .stop();
+
+  for (let i = 0; i < 300; i++) sim.tick();
+
+  // Clamp nodes to viewport
+  nodes.forEach(n => {
+    n.x = Math.max(n.r + 10, Math.min(W - n.r - 10, n.x));
+    n.y = Math.max(n.r + 10, Math.min(H - n.r - 10, n.y));
+  });
+
+  const tooltip = document.getElementById('tooltip');
+
+  const g = svg.append('g').attr('class','bubbles');
+
+  const node = g.selectAll('g.bubble-g')
+    .data(nodes).enter()
+    .append('g')
+    .attr('class','bubble-g')
+    .attr('transform', d => `translate(${d.x},${d.y})`)
+    .style('cursor','pointer');
+
+  // Glow filter
+  const glow = defs.append('filter').attr('id','glow');
+  glow.append('feGaussianBlur').attr('stdDeviation','4').attr('result','blur');
+  const feMerge = glow.append('feMerge');
+  feMerge.append('feMergeNode').attr('in','blur');
+  feMerge.append('feMergeNode').attr('in','SourceGraphic');
+
+  // Outer ring
+  node.append('circle')
+    .attr('r', d => d.r + 6)
+    .attr('fill', 'none')
+    .attr('stroke', d => d.color)
+    .attr('stroke-width', 1)
+    .attr('opacity', 0.25);
+
+  // Main circle
+  node.append('circle')
+    .attr('class','bubble')
+    .attr('r', d => d.r)
+    .attr('fill', d => d.color)
+    .attr('fill-opacity', 0.18)
+    .attr('stroke', d => d.color)
+    .attr('stroke-width', 1.5);
+
+  // Industry label
+  node.append('text')
+    .attr('class','bubble-label')
+    .attr('y', -10)
+    .text(d => d.industry.length > 14 ? d.industry.slice(0,12)+'…' : d.industry)
+    .style('font-size', d => d.r < 55 ? '9px' : '11px');
+
+  // Job count
+  node.append('text')
+    .attr('class','bubble-sublabel')
+    .attr('y', 8)
+    .text(d => `${d.count} role${d.count>1?'s':''}`)
+    .style('font-size', d => d.r < 55 ? '8px' : '9px');
+
+  // Avg salary
+  node.append('text')
+    .attr('class','bubble-sublabel')
+    .attr('y', 22)
+    .attr('fill', d => d.color)
+    .attr('opacity', 0.9)
+    .text(d => `avg ${fmt(d.avgSalary)}`)
+    .style('font-size', d => d.r < 55 ? '7px' : '9px');
+
+  // Interactions
+  node.on('mouseenter', function(event, d) {
+    tooltip.style.display = 'block';
+    tooltip.innerHTML = `
+      <div class="tt-industry">${d.industry}</div>
+      <div class="tt-jobs">${d.count} job title${d.count>1?'s':''}</div>
+      <div class="tt-salary">Avg: ${fmt(d.avgSalary)}<br>Range: ${fmt(d.minSalary)} – ${fmt(d.maxSalary)}</div>
+    `;
+  })
+  .on('mousemove', function(event) {
+    const rect = container.getBoundingClientRect();
+    let x = event.clientX - rect.left + 14;
+    let y = event.clientY - rect.top - 10;
+    if (x + 210 > W) x -= 220;
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+  })
+  .on('mouseleave', function() {
+    tooltip.style.display = 'none';
+  })
+  .on('click', function(event, d) {
+    // Remove old selection ring
+    svg.selectAll('.selected-ring').remove();
+
+    if (selectedIndustry === d.industry) {
+      selectedIndustry = null;
+      updatePanel(null, null);
+    } else {
+      selectedIndustry = d.industry;
+      // Draw selection ring
+      d3.select(this).append('circle')
+        .attr('class','selected-ring')
+        .attr('r', d.r + 3);
+      updatePanel(d, clusters);
+    }
+  });
+
+  // Legend
+  const legend = document.getElementById('legend');
+  legend.style.display = 'block';
+  legend.innerHTML = `
+    <div style="margin-bottom:0.5rem; color: var(--muted); font-size:0.6rem; text-transform:uppercase; letter-spacing:0.1em;">Bubble size = # of roles</div>
+    <div class="legend-item"><div class="legend-circle" style="width:10px;height:10px;background:#6b6b85"></div> Smaller cluster</div>
+    <div class="legend-item"><div class="legend-circle" style="width:18px;height:18px;background:#6b6b85"></div> Larger cluster</div>
+  `;
+}
+
+function closePanel() {
+  selectedIndustry = null;
+  const panel = document.getElementById('panel');
+  panel.classList.remove('open');
+  panel.innerHTML = `<div class="panel-header">Detail View <button class="panel-close" id="panel-close" onclick="closePanel()">✕</button></div><div class="panel-empty">Tap a bubble to explore job titles and salaries.</div>`;
+  d3.select('#chart-area svg').selectAll('.selected-ring').remove();
+}
+
+function updatePanel(cluster, allClusters) {
+  const panel = document.getElementById('panel');
+  if (!cluster) {
+    panel.classList.remove('open');
+    panel.innerHTML = `
+      <div class="panel-header">Detail View <button class="panel-close" id="panel-close" onclick="closePanel()">✕</button></div>
+      <div class="panel-empty">Tap a bubble to explore job titles and salaries.</div>
+    `;
+    return;
+  }
+  panel.classList.add('open');
+
+  const sorted = [...cluster.jobs].sort((a,b) => b.salary - a.salary);
+
+  panel.innerHTML = `
+    <div class="panel-header" style="color:${cluster.color}">${cluster.industry} <button class="panel-close" onclick="closePanel()">✕</button></div>
+    <div style="padding:0.8rem 1.4rem; border-bottom:1px solid var(--border);">
+      <div class="stats-bar">
+        <div class="stat"><strong>${fmt(cluster.avgSalary)}</strong>avg salary</div>
+        <div class="stat"><strong>${cluster.count}</strong>roles</div>
+      </div>
+      <div class="stats-bar" style="margin-top:0.4rem;">
+        <div class="stat"><strong>${fmt(cluster.minSalary)}</strong>min</div>
+        <div class="stat"><strong>${fmt(cluster.maxSalary)}</strong>max</div>
+      </div>
+      <div style="margin-top:0.8rem; height:3px; background:var(--border); border-radius:2px; overflow:hidden;">
+        <div style="height:100%; background:${cluster.color}; opacity:0.6; width:${Math.min(100,(cluster.avgSalary/300000)*100)}%; transition:width 0.6s;"></div>
+      </div>
+    </div>
+    <div style="padding:0.6rem 1.4rem; border-bottom:1px solid var(--border);">
+      <div class="industry-label">
+        <div class="industry-dot" style="background:${cluster.color}"></div>
+        All Roles (highest to lowest)
+      </div>
+      ${sorted.map(j => `
+        <div class="job-row">
+          <span class="job-title" title="${j.job_title}">${j.job_title}</span>
+          <span class="job-salary">${fmt(j.salary)}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+
+
+
+
+// Auto-render preloaded data on launch
+render(SAMPLE_DATA);
+
+// Resize
+window.addEventListener('resize', () => {
+  if (currentData.length > 0) render(currentData);
+});
+</script>
+</body>
+</html>
