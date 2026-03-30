@@ -344,9 +344,10 @@
   <div>
     <h1>Latina Career Cluster Map</h1>
     <div style="font-family:'DM Mono',monospace; font-size:0.68rem; color:var(--muted); margin-top:0.35rem; letter-spacing:0.06em;">
-      Created by <span style="color:var(--accent)">Karina Peñaloza</span> &nbsp;·&nbsp; Updated: March 2026
+      Created by <span style="color:var(--accent)">Karina Peñaloza</span> &nbsp;·&nbsp; Updated: March 30, 2026 &nbsp;·&nbsp; Next update: April 10
     </div>
   </div>
+  <div style="margin-left:auto; font-family:'DM Mono',monospace; font-size:0.7rem; color:var(--muted); letter-spacing:0.04em; white-space:nowrap;">TikTok <span style="color:var(--accent)">@karina.signal</span></div>
 </header>
 
 
@@ -370,6 +371,12 @@
   <div class="panel" id="panel">
     <div class="panel-header">Detail View <button class="panel-close" id="panel-close" onclick="closePanel()">✕</button></div>
     <div class="panel-empty">Tap a bubble to explore job titles and salaries.</div>
+    <div style="padding:1.2rem 1.4rem; border-top:1px solid var(--border); font-size:0.68rem; line-height:1.85; color:var(--muted); letter-spacing:0.03em;">
+      <p style="margin-bottom:0.8rem;">This map is built on <span style="color:var(--text);">self-reported salaries from Latinas on TikTok</span> who believe in transparency and want to help each other grow.</p>
+      <p style="margin-bottom:0.8rem;">Curious about the story behind it? Find me on TikTok <span style="color:var(--accent);">@karina.signal</span> and come say hi.</p>
+      <p style="margin-bottom:0.8rem;">Want to be included? Send your role, salary, and location. <span style="color:var(--text);">Fully anonymous, fully community.</span></p>
+      <p style="color:var(--accent); font-family:'DM Serif Display', serif; font-size:0.85rem;">Thank you for being here. 🌿</p>
+    </div>
   </div>
 </div>
 
@@ -381,35 +388,74 @@ const PALETTE = [
 ];
 
 const SAMPLE_DATA = [
-  {industry:'Engineering',job_title:'Process Engineer',salary:200000},
-  {industry:'Technology',job_title:'Data Analytics',salary:112000},
-  {industry:'Technology',job_title:'Product Management + Freelance Consulting',salary:400000},
-  {industry:'Technology',job_title:'Software Solutions Architect',salary:160000},
-  {industry:'Finance',job_title:'Financial Planning Director',salary:210000},
-  {industry:'Healthcare',job_title:'Nurse',salary:100000},
-  {industry:'Engineering',job_title:'Chemical Engineer / Project Manager',salary:200000},
-  {industry:'Technology',job_title:'Software Engineer',salary:110000},
-  {industry:'Finance',job_title:'Commercial Lender',salary:100000},
-  {industry:'Legal',job_title:'Immigration Court Interpreter',salary:100000},
-  {industry:'Legal',job_title:'Court Reporter',salary:135000},
-  {industry:'Finance',job_title:'Asset Manager',salary:265000},
-  {industry:'Hospitality',job_title:'Bartender',salary:100000},
-  {industry:'Engineering',job_title:'Electrical Engineer',salary:110000},
-  {industry:'Finance',job_title:'Finance Director',salary:230000},
-  {industry:'Healthcare',job_title:'Private Nurse',salary:200000},
-  {industry:'Technology',job_title:'Software Engineer',salary:143000},
-  {industry:'Creative',job_title:'Creative Director (Fashion)',salary:100000},
-  {industry:'Legal',job_title:'Paralegal',salary:110000},
-  {industry:'Technology',job_title:'Software Engineer (FAANG)',salary:400000},
-  {industry:'Real Estate',job_title:'Real Estate Investor',salary:200000},
-  {industry:'Finance',job_title:'Corporate Finance',salary:200000},
-  {industry:'Technology',job_title:'Software Engineer',salary:100000},
-  {industry:'Technology',job_title:'Software Engineer',salary:250000},
-  {industry:'Sales',job_title:'Sales',salary:200000},
-  {industry:'HR',job_title:'HR Manager',salary:110000},
-  {industry:'Legal',job_title:'Attorney',salary:197000},
-  {industry:'Finance',job_title:'Accountant',salary:120000},
-  {industry:'HR',job_title:'HR Manager',salary:155000},
+  // Original entries
+  {industry:'Engineering',job_title:'Process Engineer',salary:200000,location:''},
+  {industry:'Technology',job_title:'Data Analytics',salary:112000,location:''},
+  {industry:'Technology',job_title:'Product Management + Freelance Consulting',salary:400000,location:''},
+  {industry:'Technology',job_title:'Software Solutions Architect',salary:160000,location:''},
+  {industry:'Finance',job_title:'Financial Planning Director',salary:210000,location:''},
+  {industry:'Healthcare',job_title:'Nurse',salary:100000,location:''},
+  {industry:'Engineering',job_title:'Chemical Engineer / Project Manager',salary:200000,location:''},
+  {industry:'Technology',job_title:'Software Engineer',salary:110000,location:''},
+  {industry:'Finance',job_title:'Commercial Lender',salary:100000,location:''},
+  {industry:'Legal',job_title:'Immigration Court Interpreter',salary:100000,location:''},
+  {industry:'Legal',job_title:'Court Reporter',salary:135000,location:''},
+  {industry:'Finance',job_title:'Asset Manager',salary:265000,location:''},
+  {industry:'Hospitality',job_title:'Bartender',salary:100000,location:''},
+  {industry:'Engineering',job_title:'Electrical Engineer',salary:110000,location:''},
+  {industry:'Finance',job_title:'Finance Director',salary:230000,location:''},
+  {industry:'Healthcare',job_title:'Private Nurse',salary:200000,location:''},
+  {industry:'Technology',job_title:'Software Engineer',salary:143000,location:''},
+  {industry:'Creative',job_title:'Creative Director (Fashion)',salary:100000,location:''},
+  {industry:'Legal',job_title:'Paralegal',salary:110000,location:''},
+  {industry:'Technology',job_title:'Software Engineer (FAANG)',salary:400000,location:''},
+  {industry:'Real Estate',job_title:'Real Estate Investor',salary:200000,location:''},
+  {industry:'Finance',job_title:'Corporate Finance',salary:200000,location:''},
+  {industry:'Technology',job_title:'Software Engineer',salary:100000,location:''},
+  {industry:'Technology',job_title:'Software Engineer',salary:250000,location:''},
+  {industry:'Sales',job_title:'Sales',salary:200000,location:''},
+  {industry:'HR',job_title:'HR Manager',salary:110000,location:''},
+  {industry:'Legal',job_title:'Attorney',salary:197000,location:''},
+  {industry:'Finance',job_title:'Accountant',salary:120000,location:''},
+  {industry:'HR',job_title:'HR Manager',salary:155000,location:''},
+  // New entries
+  {industry:'Healthcare',job_title:'Licensed Clinical Social Worker',salary:115000,location:'Los Angeles, CA'},
+  {industry:'Technology',job_title:'Operations Manager',salary:132000,location:'Chicago, IL'},
+  {industry:'Consulting',job_title:'Sr. Project Manager (Advertising)',salary:105000,location:'Austin, TX'},
+  {industry:'Technology',job_title:'Director, Consumer Analytics',salary:195000,location:'New York, NY (Remote)'},
+  {industry:'Consulting',job_title:'Sr. Consultant (Big 4)',salary:163000,location:''},
+  {industry:'Technology',job_title:'Customer Success Manager',salary:126000,location:''},
+  {industry:'Healthcare',job_title:'Travel Nurse Practitioner',salary:175000,location:''},
+  {industry:'Operations',job_title:'Executive Assistant',salary:100000,location:''},
+  {industry:'Creative',job_title:'Visual Direction Manager (Fashion)',salary:105000,location:''},
+  {industry:'Sales',job_title:'Sales (Food Industry)',salary:140000,location:''},
+  {industry:'Healthcare',job_title:'Bilingual Speech Language Pathologist',salary:170000,location:''},
+  {industry:'Finance',job_title:'CPA',salary:140000,location:''},
+  {industry:'Operations',job_title:'Supply Chain (Government Contracts)',salary:155000,location:''},
+  {industry:'Government',job_title:'Correctional Treatment Specialist',salary:120000,location:''},
+  {industry:'Marketing',job_title:'Marketing Manager',salary:107000,location:'New York City, NY'},
+  {industry:'Technology',job_title:'IT Business Systems Analyst',salary:112000,location:''},
+  {industry:'Education',job_title:'Associate VP (Higher Education)',salary:161000,location:'Denver, CO'},
+  {industry:'HR',job_title:'Director of HR (Public Transportation)',salary:160000,location:''},
+  {industry:'Government',job_title:'Marketing Deputy Director (Government)',salary:127000,location:'California'},
+  {industry:'Government',job_title:'Director of Operations (Government)',salary:110000,location:''},
+  {industry:'Government',job_title:'Manager, Community Partnership & Engagement',salary:100000,location:''},
+  {industry:'Technology',job_title:'Business App Analyst',salary:120000,location:''},
+  {industry:'Government',job_title:'Naval Officer',salary:150000,location:''},
+  {industry:'Healthcare',job_title:'Sr. Regulatory Affairs Specialist (Med Tech)',salary:110000,location:''},
+  {industry:'Government',job_title:'Detention Sergeant',salary:106000,location:''},
+  {industry:'Operations',job_title:'Sr. Program Manager, Operations',salary:170000,location:''},
+  {industry:'Technology',job_title:'IT Business Relationship Manager',salary:135000,location:''},
+  {industry:'Sales',job_title:'Market Development Manager (Telecom)',salary:170000,location:'Texas'},
+  {industry:'Government',job_title:'Data Security Administrator (Defense)',salary:120000,location:''},
+  {industry:'HR',job_title:'HR Director',salary:135000,location:''},
+  {industry:'HR',job_title:'Recruiter',salary:135000,location:''},
+  {industry:'Government',job_title:'Project Manager (Government)',salary:110000,location:''},
+  {industry:'Finance',job_title:'Corporate Bank Manager',salary:105000,location:''},
+  {industry:'HR',job_title:'HR Manager (Tech)',salary:149000,location:''},
+  {industry:'Operations',job_title:'Regional Workplace Ops Manager (Tech)',salary:130000,location:''},
+  {industry:'Education',job_title:'College Counselor',salary:116000,location:''},
+  {industry:'Legal',job_title:'Litigation Claims Adjuster',salary:120000,location:''},
 ];
 
 let currentData = [];
@@ -630,7 +676,7 @@ function closePanel() {
   selectedIndustry = null;
   const panel = document.getElementById('panel');
   panel.classList.remove('open');
-  panel.innerHTML = `<div class="panel-header">Detail View <button class="panel-close" id="panel-close" onclick="closePanel()">✕</button></div><div class="panel-empty">Tap a bubble to explore job titles and salaries.</div>`;
+  panel.innerHTML = `<div class="panel-header">Detail View <button class="panel-close" id="panel-close" onclick="closePanel()">✕</button></div><div class="panel-empty">Tap a bubble to explore job titles and salaries.</div><div style="padding:1.2rem 1.4rem; border-top:1px solid var(--border); font-size:0.68rem; line-height:1.85; color:var(--muted); letter-spacing:0.03em;"><p style="margin-bottom:0.8rem;">This map is built on <span style="color:#e8e8f0;">self-reported salaries from Latinas on TikTok</span> who believe in transparency and want to help each other grow.</p><p style="margin-bottom:0.8rem;">Curious about the story behind it? Find me on TikTok <span style="color:#c8a96e;">@karina.signal</span> and come say hi.</p><p style="margin-bottom:0.8rem;">Want to be included? Send your role, salary, and location. <span style="color:#e8e8f0;">Fully anonymous, fully community.</span></p><p style="color:#c8a96e; font-family:DM Serif Display,serif; font-size:0.85rem;">Thank you for being here. 🌿</p></div>`;
   d3.select('#chart-area svg').selectAll('.selected-ring').remove();
 }
 
@@ -641,6 +687,12 @@ function updatePanel(cluster, allClusters) {
     panel.innerHTML = `
       <div class="panel-header">Detail View <button class="panel-close" id="panel-close" onclick="closePanel()">✕</button></div>
       <div class="panel-empty">Tap a bubble to explore job titles and salaries.</div>
+    <div style="padding:1.2rem 1.4rem; border-top:1px solid var(--border); font-size:0.68rem; line-height:1.85; color:var(--muted); letter-spacing:0.03em;">
+      <p style="margin-bottom:0.8rem;">This map is built on <span style="color:var(--text);">self-reported salaries from Latinas on TikTok</span> who believe in transparency and want to help each other grow.</p>
+      <p style="margin-bottom:0.8rem;">Curious about the story behind it? Find me on TikTok <span style="color:var(--accent);">@karina.signal</span> and come say hi.</p>
+      <p style="margin-bottom:0.8rem;">Want to be included? Send your role, salary, and location. <span style="color:var(--text);">Fully anonymous, fully community.</span></p>
+      <p style="color:var(--accent); font-family:'DM Serif Display', serif; font-size:0.85rem;">Thank you for being here. 🌿</p>
+    </div>
     `;
     return;
   }
@@ -670,7 +722,10 @@ function updatePanel(cluster, allClusters) {
       </div>
       ${sorted.map(j => `
         <div class="job-row">
-          <span class="job-title" title="${j.job_title}">${j.job_title}</span>
+          <div style="flex:1;min-width:0;">
+            <span class="job-title" title="${j.job_title}">${j.job_title}</span>
+            ${j.location ? `<div style="font-size:0.6rem;color:var(--muted);margin-top:1px;letter-spacing:0.04em;">📍 ${j.location}</div>` : ''}
+          </div>
           <span class="job-salary">${fmt(j.salary)}</span>
         </div>
       `).join('')}
