@@ -3,308 +3,414 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Career Cluster Map</title>
+<title>Latina Career Cluster Map</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #0a0a0f;
-    --surface: #12121a;
-    --border: #1e1e2e;
-    --text: #e8e8f0;
-    --muted: #6b6b85;
-    --accent: #c8a96e;
-    --accent2: #7c9bcc;
-    --danger: #cc7c7c;
+    --bg: #0e0c0a;
+    --surface: #141210;
+    --border: #2a2520;
+    --text: #f0ebe3;
+    --muted: #7a7068;
+    --rose: #c9837a;
+    --gold: #c8a96e;
+    --cream: #f0ebe3;
+    --dim: #3a342e;
   }
 
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'DM Mono', monospace;
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
     min-height: 100vh;
     overflow-x: hidden;
   }
 
-  body::before {
+  body::after {
     content: '';
     position: fixed;
     inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
     pointer-events: none;
-    z-index: 1000;
-    opacity: 0.4;
+    z-index: 999;
   }
 
+  /* HEADER */
   header {
-    display: flex;
-    align-items: baseline;
-    gap: 1.5rem;
-    padding: 1.2rem 1.5rem 1rem;
+    padding: 1.8rem 2.4rem 0;
     border-bottom: 1px solid var(--border);
   }
 
-  h1 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 1.6rem;
-    color: var(--accent);
-    letter-spacing: -0.02em;
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
   }
 
+  .header-title-block h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.4rem;
+    font-weight: 400;
+    color: var(--gold);
+    letter-spacing: 0.01em;
+    line-height: 1.1;
+  }
+
+  .byline {
+    font-size: 0.68rem;
+    font-weight: 300;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 0.35rem;
+  }
+
+  .byline span { color: var(--gold); }
+
+  .tiktok-tag {
+    font-size: 0.68rem;
+    font-weight: 300;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-align: right;
+    white-space: nowrap;
+    padding-top: 0.2rem;
+  }
+
+  .tiktok-tag span { color: var(--rose); }
+
+  /* COMMUNITY BANNER */
+  .community-banner {
+    margin-top: 1.2rem;
+    padding: 1rem 0 1.2rem;
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem 2.5rem;
+    align-items: center;
+  }
+
+  .community-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--cream);
+    line-height: 1.65;
+    opacity: 0.85;
+  }
+
+  .community-text strong {
+    font-style: normal;
+    font-weight: 500;
+    color: var(--rose);
+  }
+
+  .community-cta {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .community-cta p {
+    font-size: 0.63rem;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    line-height: 1.9;
+  }
+
+  .community-cta p span { color: var(--gold); }
+
+  /* MAIN */
   .main {
-    display: flex;
-    height: calc(100vh - 68px);
+    height: calc(100vh - 175px);
+    position: relative;
   }
 
   #chart-area {
-    flex: 1;
+    width: 100%;
+    height: 100%;
     position: relative;
     overflow: hidden;
   }
 
-  #chart-area svg {
-    width: 100%;
-    height: 100%;
-  }
+  #chart-area svg { width: 100%; height: 100%; }
 
-  .panel {
-    width: 300px;
-    border-left: 1px solid var(--border);
-    background: var(--surface);
+  /* DESKTOP SIDE PANEL */
+  .side-panel {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 270px;
+    background: rgba(20,18,16,0.94);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    display: none;
+    z-index: 50;
+    max-height: calc(100% - 3rem);
     overflow-y: auto;
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
   }
 
-  .panel-header {
-    padding: 1.2rem 1.4rem 0.8rem;
-    border-bottom: 1px solid var(--border);
-    font-family: 'DM Serif Display', serif;
-    font-size: 1.1rem;
-    color: var(--accent);
+  .side-panel.open { display: block; }
+  .side-panel-inner { padding: 1.3rem 1.4rem 1.5rem; }
+
+  /* MOBILE SLIDE-UP PANEL */
+  .detail-panel {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1);
+    z-index: 50;
+    display: none;
+  }
+
+  .detail-panel.open { max-height: 55vh; overflow-y: auto; }
+  .detail-panel-inner { padding: 1.2rem 1.4rem 1.6rem; }
+
+  /* SHARED PANEL STYLES */
+  .panel-industry {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+    font-style: italic;
+    margin-bottom: 0.8rem;
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: baseline;
   }
 
   .panel-close {
-    display: none;
     background: none;
     border: none;
     color: var(--muted);
-    font-size: 1.2rem;
+    font-size: 1rem;
     cursor: pointer;
-    line-height: 1;
-    padding: 0 0.2rem;
+    font-family: 'Jost', sans-serif;
   }
 
-  .panel-empty {
-    padding: 2rem 1.4rem;
-    color: var(--muted);
-    font-size: 0.7rem;
-    line-height: 1.8;
-    letter-spacing: 0.04em;
-  }
-
-  .tap-hint {
-    display: none;
-    position: absolute;
-    bottom: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 0.62rem;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    text-align: center;
-    pointer-events: none;
-    white-space: nowrap;
-  }
-
-  @media (max-width: 640px) {
-    header { padding: 0.9rem 1rem 0.7rem; }
-    h1 { font-size: 1.15rem; }
-    .main { flex-direction: column; height: calc(100vh - 56px); }
-    #chart-area { flex: 1; min-height: 0; }
-    .panel {
-      width: 100%;
-      border-left: none;
-      border-top: 1px solid var(--border);
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1);
-      flex-shrink: 0;
-    }
-    .panel.open { max-height: 55vh; overflow-y: auto; }
-    .panel-close { display: block; }
-    .tap-hint { display: block; }
-    .legend { bottom: 0.5rem; left: 0.5rem; }
-  }
-
-  .industry-label {
+  .panel-stats {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--muted);
+    gap: 1.5rem;
     margin-bottom: 0.8rem;
   }
 
-  .industry-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .stat-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.15rem;
+  }
+
+  .stat-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem;
+    color: var(--cream);
+  }
+
+  .salary-bar {
+    height: 1px;
+    background: var(--dim);
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+
+  .salary-bar-fill { height: 100%; transition: width 0.6s; }
+
+  .roles-header {
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .roles-header::before {
+    content: '';
+    display: inline-block;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--rose);
+  }
 
   .job-row {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
-    padding: 0.35rem 0;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    gap: 0.5rem;
+    align-items: flex-start;
+    padding: 0.42rem 0;
+    border-bottom: 1px solid rgba(240,235,227,0.05);
+    gap: 1rem;
   }
 
   .job-title {
-    font-size: 0.72rem;
-    color: var(--text);
+    font-size: 0.73rem;
+    font-weight: 300;
+    color: var(--cream);
     flex: 1;
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: 1.45;
   }
 
-  .job-salary { font-size: 0.68rem; color: var(--accent); white-space: nowrap; flex-shrink: 0; }
+  .job-location {
+    font-size: 0.58rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
 
-  .stats-bar { margin-top: 0.5rem; display: flex; gap: 1rem; }
+  .job-salary {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem;
+    color: var(--gold);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
 
-  .stat { font-size: 0.62rem; color: var(--muted); }
-  .stat strong { display: block; font-size: 0.85rem; color: var(--text); font-weight: 400; }
+  /* TOOLTIP */
+  .tooltip {
+    position: absolute;
+    background: rgba(14,12,10,0.96);
+    border: 1px solid var(--border);
+    padding: 0.7rem 1rem;
+    pointer-events: none;
+    line-height: 1.6;
+    z-index: 100;
+    display: none;
+    backdrop-filter: blur(4px);
+  }
 
-  .bubble { cursor: pointer; transition: opacity 0.2s; }
-  .bubble:hover { opacity: 0.85; }
+  .tt-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    font-style: italic;
+    color: var(--gold);
+  }
 
+  .tt-count { font-size: 0.62rem; color: var(--muted); letter-spacing: 0.06em; }
+  .tt-sal { font-size: 0.68rem; color: var(--rose); margin-top: 0.2rem; }
+
+  /* LEGEND */
+  .legend {
+    position: absolute;
+    bottom: 1.2rem;
+    left: 1.2rem;
+    font-size: 0.58rem;
+    color: var(--muted);
+    letter-spacing: 0.07em;
+    display: none;
+  }
+
+  .legend-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; }
+  .legend-dot { border-radius: 50%; background: var(--muted); opacity: 0.4; flex-shrink: 0; }
+
+  /* SVG TEXT */
   .bubble-label {
     pointer-events: none;
     text-anchor: middle;
     dominant-baseline: middle;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    fill: rgba(255,255,255,0.9);
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    fill: rgba(240,235,227,0.88);
   }
 
-  .bubble-sublabel {
+  .bubble-sub {
     pointer-events: none;
     text-anchor: middle;
     dominant-baseline: middle;
-    font-family: 'DM Mono', monospace;
-    font-size: 9px;
-    fill: rgba(255,255,255,0.5);
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    fill: rgba(240,235,227,0.42);
   }
 
-  .tooltip {
-    position: absolute;
-    background: #1a1a28;
-    border: 1px solid var(--border);
-    padding: 0.7rem 1rem;
-    font-size: 0.68rem;
+  .bubble-sal {
     pointer-events: none;
-    max-width: 200px;
-    line-height: 1.6;
-    z-index: 10;
-    display: none;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    fill: rgba(200,169,110,0.82);
   }
 
-  .tooltip .tt-industry { color: var(--accent); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; }
-  .tooltip .tt-jobs { color: var(--muted); }
-  .tooltip .tt-salary { color: var(--accent2); margin-top: 0.3rem; }
+  .selected-ring { fill: none; stroke-width: 1.5; pointer-events: none; opacity: 0.65; }
 
-  .legend {
-    position: absolute;
-    bottom: 1.5rem;
-    left: 1.5rem;
-    font-size: 0.62rem;
-    color: var(--muted);
-    letter-spacing: 0.05em;
-  }
-
-  .legend-item { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; }
-  .legend-circle { border-radius: 50%; opacity: 0.6; flex-shrink: 0; }
-
-  .empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    gap: 1rem;
-    color: var(--muted);
-  }
-
-  .empty-title { font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: var(--muted); }
-  .empty-sub { font-size: 0.68rem; text-align: center; max-width: 280px; line-height: 1.8; letter-spacing: 0.04em; }
-
-  .selected-ring { fill: none; stroke: white; stroke-width: 2; pointer-events: none; opacity: 0.8; }
-
-  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar { width: 3px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 2px; }
+
+  /* MOBILE */
+  @media (max-width: 640px) {
+    header { padding: 1.1rem 1.2rem 0; }
+    .header-title-block h1 { font-size: 1.55rem; }
+    .community-banner { grid-template-columns: 1fr; gap: 0.5rem; padding-bottom: 0.8rem; }
+    .community-cta { text-align: left; }
+    .tiktok-tag { padding-top: 0; }
+    .main { height: calc(100vh - 210px); }
+    .side-panel { display: none !important; }
+    .detail-panel { display: block; }
+  }
+
+  @media (min-width: 641px) {
+    .detail-panel { display: none !important; }
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <div>
-    <h1>Latina Career Cluster Map</h1>
-    <div style="font-family:'DM Mono',monospace; font-size:0.68rem; color:var(--muted); margin-top:0.35rem; letter-spacing:0.06em;">
-      Created by <span style="color:var(--accent)">Karina Peñaloza</span> &nbsp;·&nbsp; Updated: March 30, 2026 &nbsp;·&nbsp; Next update: April 10
+  <div class="header-top">
+    <div class="header-title-block">
+      <h1>Latina Career Cluster Map</h1>
+      <div class="byline">By <span>Karina Peñaloza</span> &nbsp;·&nbsp; Updated March 30, 2026 &nbsp;·&nbsp; Next update April 10</div>
+    </div>
+    <div class="tiktok-tag">TikTok<br><span>@karina.signal</span></div>
+  </div>
+  <div class="community-banner">
+    <p class="community-text">
+      Self-reported salaries from <strong>Latinas on TikTok</strong> who believe in transparency and want to help each other grow. Fully anonymous. Fully community.
+    </p>
+    <div class="community-cta">
+      <p>Submit your salary,<br>role &amp; location<br><span>@karina.signal</span></p>
     </div>
   </div>
-  <div style="margin-left:auto; font-family:'DM Mono',monospace; font-size:0.7rem; color:var(--muted); letter-spacing:0.04em; white-space:nowrap;">TikTok <span style="color:var(--accent)">@karina.signal</span></div>
 </header>
 
 <div class="main">
   <div id="chart-area">
-    <div class="empty-state" id="empty-state">
-      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="#6b6b85" stroke-width="1.5">
-        <circle cx="20" cy="32" r="12"/>
-        <circle cx="44" cy="20" r="8"/>
-        <circle cx="46" cy="44" r="10"/>
-        <line x1="20" y1="32" x2="44" y2="20" stroke-dasharray="3 3"/>
-        <line x1="44" y1="20" x2="46" y2="44" stroke-dasharray="3 3"/>
-      </svg>
-      <div class="empty-title">No data yet</div>
-      <div class="empty-sub">Loading data...</div>
-    </div>
     <div class="tooltip" id="tooltip"></div>
-    <div class="legend" id="legend" style="display:none"></div>
-    <div class="tap-hint" id="tap-hint">Tap a bubble to explore ↑</div>
+    <div class="legend" id="legend"></div>
   </div>
-  <div class="panel" id="panel">
-    <div class="panel-header">Detail View <button class="panel-close" id="panel-close" onclick="closePanel()">✕</button></div>
-    <div class="panel-empty">Tap a bubble to explore job titles and salaries.</div>
-    <div style="padding:1.2rem 1.4rem; border-top:1px solid var(--border); font-size:0.68rem; line-height:1.85; color:var(--muted); letter-spacing:0.03em;">
-      <p style="margin-bottom:0.8rem;">This map is built on <span style="color:var(--text);">self-reported salaries from Latinas on TikTok</span> who believe in transparency and want to help each other grow.</p>
-      <p style="margin-bottom:0.8rem;">Curious about the story behind it? Find me on TikTok <span style="color:var(--accent);">@karina.signal</span> and come say hi.</p>
-      <p style="margin-bottom:0.8rem;">Want to be included? Send your role, salary, and location. <span style="color:var(--text);">Fully anonymous, fully community.</span></p>
-      <p style="color:var(--accent); font-family:'DM Serif Display', serif; font-size:0.85rem;">Thank you for being here. 🌿</p>
-    </div>
+  <div class="side-panel" id="side-panel">
+    <div class="side-panel-inner" id="side-panel-inner"></div>
+  </div>
+  <div class="detail-panel" id="detail-panel">
+    <div class="detail-panel-inner" id="detail-panel-inner"></div>
   </div>
 </div>
 
 <script>
 const PALETTE = [
-  '#c8a96e','#7c9bcc','#7ccc9b','#cc7c9b','#cc9b7c',
-  '#9b7ccc','#7ccccc','#cccc7c','#cc7c7c','#7c7ccc',
-  '#a9cc7c','#cc7ca9','#7cccb0','#ccb07c','#8a7ccc'
+  '#c8a96e','#c9837a','#9b8fcc','#7aaccc','#7acc9b',
+  '#cc9b7a','#cc7a9b','#7acccc','#a9cc7a','#cc7a7a',
+  '#7a9bcc','#ccb07a','#8a7acc','#7acca9','#b07acc'
 ];
 
 const SAMPLE_DATA = [
   {industry:'Engineering',job_title:'Process Engineer',salary:200000,location:''},
-  {industry:'Technology',job_title:'Data Analytics',salary:112000,location:''},
-  {industry:'Technology',job_title:'Product Management + Freelance Consulting',salary:400000,location:''},
+  {industry:'Business',job_title:'Data Analytics',salary:112000,location:''},
+  {industry:'Business',job_title:'Product Management + Freelance Consulting',salary:400000,location:''},
   {industry:'Technology',job_title:'Software Solutions Architect',salary:160000,location:''},
   {industry:'Finance',job_title:'Financial Planning Director',salary:210000,location:''},
   {industry:'Healthcare',job_title:'Nurse',salary:100000,location:''},
@@ -332,11 +438,11 @@ const SAMPLE_DATA = [
   {industry:'Finance',job_title:'Accountant',salary:120000,location:''},
   {industry:'HR',job_title:'HR Manager',salary:155000,location:''},
   {industry:'Healthcare',job_title:'Licensed Clinical Social Worker',salary:115000,location:'Los Angeles, CA'},
-  {industry:'Technology',job_title:'Operations Manager',salary:132000,location:'Chicago, IL'},
-  {industry:'Consulting',job_title:'Sr. Project Manager (Advertising)',salary:105000,location:'Austin, TX'},
+  {industry:'Business',job_title:'Operations Manager',salary:132000,location:'Chicago, IL'},
+  {industry:'Business',job_title:'Sr. Project Manager (Advertising)',salary:105000,location:'Austin, TX'},
   {industry:'Technology',job_title:'Director, Consumer Analytics',salary:195000,location:'New York, NY (Remote)'},
-  {industry:'Consulting',job_title:'Sr. Consultant (Big 4)',salary:163000,location:''},
-  {industry:'Technology',job_title:'Customer Success Manager',salary:126000,location:''},
+  {industry:'Business',job_title:'Sr. Consultant (Big 4)',salary:163000,location:''},
+  {industry:'Business',job_title:'Customer Success Manager',salary:126000,location:''},
   {industry:'Healthcare',job_title:'Travel Nurse Practitioner',salary:175000,location:''},
   {industry:'Operations',job_title:'Executive Assistant',salary:100000,location:''},
   {industry:'Creative',job_title:'Visual Direction Manager (Fashion)',salary:105000,location:''},
@@ -345,14 +451,14 @@ const SAMPLE_DATA = [
   {industry:'Finance',job_title:'CPA',salary:140000,location:''},
   {industry:'Operations',job_title:'Supply Chain (Government Contracts)',salary:155000,location:''},
   {industry:'Government',job_title:'Correctional Treatment Specialist',salary:120000,location:''},
-  {industry:'Marketing',job_title:'Marketing Manager',salary:107000,location:'New York City, NY'},
+  {industry:'Business',job_title:'Marketing Manager',salary:107000,location:'New York City, NY'},
   {industry:'Technology',job_title:'IT Business Systems Analyst',salary:112000,location:''},
   {industry:'Education',job_title:'Associate VP (Higher Education)',salary:161000,location:'Denver, CO'},
   {industry:'HR',job_title:'Director of HR (Public Transportation)',salary:160000,location:''},
   {industry:'Government',job_title:'Marketing Deputy Director (Government)',salary:127000,location:'California'},
   {industry:'Government',job_title:'Director of Operations (Government)',salary:110000,location:''},
   {industry:'Government',job_title:'Manager, Community Partnership & Engagement',salary:100000,location:''},
-  {industry:'Technology',job_title:'Business App Analyst',salary:120000,location:''},
+  {industry:'Business',job_title:'Business App Analyst',salary:120000,location:''},
   {industry:'Government',job_title:'Naval Officer',salary:150000,location:''},
   {industry:'Healthcare',job_title:'Sr. Regulatory Affairs Specialist (Med Tech)',salary:110000,location:''},
   {industry:'Government',job_title:'Detention Sergeant',salary:106000,location:''},
@@ -372,9 +478,10 @@ const SAMPLE_DATA = [
 
 let currentData = [];
 let selectedIndustry = null;
+const isMobile = () => window.innerWidth <= 640;
 
 function fmt(n) {
-  if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000000) return '$' + (n/1e6).toFixed(1) + 'M';
   if (n >= 1000) return '$' + Math.round(n/1000) + 'k';
   return '$' + n;
 }
@@ -386,173 +493,180 @@ function buildClusters(data) {
     map[d.industry].push(d);
   });
   return Object.entries(map).map(([industry, jobs], i) => {
-    const salaries = jobs.map(j => j.salary);
+    const sal = jobs.map(j => j.salary);
     return {
       industry, jobs,
       count: jobs.length,
-      avgSalary: salaries.reduce((a,b) => a+b, 0) / salaries.length,
-      minSalary: Math.min(...salaries),
-      maxSalary: Math.max(...salaries),
+      avgSalary: sal.reduce((a,b)=>a+b,0)/sal.length,
+      minSalary: Math.min(...sal),
+      maxSalary: Math.max(...sal),
       color: PALETTE[i % PALETTE.length]
     };
   });
 }
 
-const BLURB = `<div style="padding:1.2rem 1.4rem; border-top:1px solid #1e1e2e; font-size:0.68rem; line-height:1.85; color:#6b6b85; letter-spacing:0.03em;">
-  <p style="margin-bottom:0.8rem;">This map is built on <span style="color:#e8e8f0;">self-reported salaries from Latinas on TikTok</span> who believe in transparency and want to help each other grow.</p>
-  <p style="margin-bottom:0.8rem;">Curious about the story behind it? Find me on TikTok <span style="color:#c8a96e;">@karina.signal</span> and come say hi.</p>
-  <p style="margin-bottom:0.8rem;">Want to be included? Send your role, salary, and location. <span style="color:#e8e8f0;">Fully anonymous, fully community.</span></p>
-  <p style="color:#c8a96e; font-family:'DM Serif Display',serif; font-size:0.85rem;">Thank you for being here. 🌿</p>
-</div>`;
+function buildPanelHTML(cluster) {
+  const sorted = [...cluster.jobs].sort((a,b) => b.salary - a.salary);
+  return `
+    <div class="panel-industry" style="color:${cluster.color}">
+      ${cluster.industry}
+      <button class="panel-close" onclick="closePanel()">✕</button>
+    </div>
+    <div class="panel-stats">
+      <div><div class="stat-label">avg salary</div><div class="stat-val">${fmt(cluster.avgSalary)}</div></div>
+      <div><div class="stat-label">roles</div><div class="stat-val">${cluster.count}</div></div>
+      <div><div class="stat-label">range</div><div class="stat-val" style="font-size:0.82rem">${fmt(cluster.minSalary)} – ${fmt(cluster.maxSalary)}</div></div>
+    </div>
+    <div class="salary-bar"><div class="salary-bar-fill" style="width:${Math.min(100,(cluster.avgSalary/350000)*100)}%;background:${cluster.color}"></div></div>
+    <div class="roles-header">All roles — highest to lowest</div>
+    ${sorted.map(j=>`
+      <div class="job-row">
+        <div style="flex:1;min-width:0;">
+          <div class="job-title">${j.job_title}</div>
+          ${j.location?`<div class="job-location">📍 ${j.location}</div>`:''}
+        </div>
+        <div class="job-salary">${fmt(j.salary)}</div>
+      </div>
+    `).join('')}
+  `;
+}
 
 function closePanel() {
   selectedIndustry = null;
-  const panel = document.getElementById('panel');
-  panel.classList.remove('open');
-  panel.innerHTML = `<div class="panel-header">Detail View <button class="panel-close" onclick="closePanel()">✕</button></div><div class="panel-empty">Tap a bubble to explore job titles and salaries.</div>${BLURB}`;
-  d3.select('#chart-area svg').selectAll('.selected-ring').remove();
+  document.getElementById('side-panel').classList.remove('open');
+  document.getElementById('detail-panel').classList.remove('open');
+  d3.selectAll('.selected-ring').remove();
 }
 
-function updatePanel(cluster, allClusters) {
-  const panel = document.getElementById('panel');
-  if (!cluster) {
-    panel.classList.remove('open');
-    panel.innerHTML = `<div class="panel-header">Detail View <button class="panel-close" onclick="closePanel()">✕</button></div><div class="panel-empty">Tap a bubble to explore job titles and salaries.</div>${BLURB}`;
-    return;
+function openPanel(cluster) {
+  const html = buildPanelHTML(cluster);
+  document.getElementById('side-panel-inner').innerHTML = html;
+  document.getElementById('detail-panel-inner').innerHTML = html;
+  if (isMobile()) {
+    document.getElementById('detail-panel').classList.add('open');
+  } else {
+    document.getElementById('side-panel').classList.add('open');
   }
-  panel.classList.add('open');
-  const sorted = [...cluster.jobs].sort((a,b) => b.salary - a.salary);
-  panel.innerHTML = `
-    <div class="panel-header" style="color:${cluster.color}">${cluster.industry} <button class="panel-close" onclick="closePanel()">✕</button></div>
-    <div style="padding:0.8rem 1.4rem; border-bottom:1px solid #1e1e2e;">
-      <div class="stats-bar">
-        <div class="stat"><strong>${fmt(cluster.avgSalary)}</strong>avg salary</div>
-        <div class="stat"><strong>${cluster.count}</strong>roles</div>
-      </div>
-      <div class="stats-bar" style="margin-top:0.4rem;">
-        <div class="stat"><strong>${fmt(cluster.minSalary)}</strong>min</div>
-        <div class="stat"><strong>${fmt(cluster.maxSalary)}</strong>max</div>
-      </div>
-      <div style="margin-top:0.8rem; height:3px; background:#1e1e2e; border-radius:2px; overflow:hidden;">
-        <div style="height:100%; background:${cluster.color}; opacity:0.6; width:${Math.min(100,(cluster.avgSalary/300000)*100)}%; transition:width 0.6s;"></div>
-      </div>
-    </div>
-    <div style="padding:0.6rem 1.4rem; border-bottom:1px solid #1e1e2e;">
-      <div class="industry-label">
-        <div class="industry-dot" style="background:${cluster.color}"></div>
-        All Roles (highest to lowest)
-      </div>
-      ${sorted.map(j => `
-        <div class="job-row">
-          <div style="flex:1;min-width:0;">
-            <span class="job-title" title="${j.job_title}">${j.job_title}</span>
-            ${j.location ? `<div style="font-size:0.6rem;color:#6b6b85;margin-top:1px;letter-spacing:0.04em;">📍 ${j.location}</div>` : ''}
-          </div>
-          <span class="job-salary">${fmt(j.salary)}</span>
-        </div>
-      `).join('')}
-    </div>
-  `;
 }
 
 function render(data) {
   currentData = data;
   selectedIndustry = null;
-  updatePanel(null, null);
+  closePanel();
 
   const clusters = buildClusters(data);
   const container = document.getElementById('chart-area');
-  document.getElementById('empty-state').style.display = 'none';
-
   const W = container.clientWidth;
   const H = container.clientHeight;
 
   d3.select('#chart-area svg').remove();
-  const svg = d3.select('#chart-area').append('svg').attr('width', W).attr('height', H);
+  const svg = d3.select('#chart-area').append('svg').attr('width',W).attr('height',H);
 
   const defs = svg.append('defs');
-  const pattern = defs.append('pattern').attr('id','grid').attr('width',40).attr('height',40).attr('patternUnits','userSpaceOnUse');
-  pattern.append('path').attr('d','M 40 0 L 0 0 0 40').attr('fill','none').attr('stroke','rgba(255,255,255,0.03)').attr('stroke-width',1);
-  svg.append('rect').attr('width',W).attr('height',H).attr('fill','url(#grid)');
 
-  const maxCount = Math.max(...clusters.map(c => c.count));
-  const isMobile = window.innerWidth <= 640;
-  const rScale = d3.scaleSqrt().domain([1, maxCount]).range(isMobile ? [28, 65] : [45, 110]);
+  // Subtle dot grid
+  const pat = defs.append('pattern').attr('id','dots').attr('width',32).attr('height',32).attr('patternUnits','userSpaceOnUse');
+  pat.append('circle').attr('cx',16).attr('cy',16).attr('r',0.7).attr('fill','rgba(240,235,227,0.06)');
+  svg.append('rect').attr('width',W).attr('height',H).attr('fill','url(#dots)');
 
-  const nodes = clusters.map(c => ({ ...c, r: rScale(c.count), x: W/2 + (Math.random()-0.5)*200, y: H/2 + (Math.random()-0.5)*200 }));
+  const mobile = isMobile();
+  const maxCount = Math.max(...clusters.map(c=>c.count));
+  const rScale = d3.scaleSqrt().domain([1,maxCount]).range(mobile?[26,62]:[40,100]);
+
+  const nodes = clusters.map(c => ({
+    ...c,
+    r: rScale(c.count),
+    x: W/2 + (Math.random()-0.5)*200,
+    y: H/2 + (Math.random()-0.5)*200
+  }));
 
   const sim = d3.forceSimulation(nodes)
-    .force('charge', d3.forceManyBody().strength(20))
+    .force('charge', d3.forceManyBody().strength(12))
     .force('center', d3.forceCenter(W/2, H/2))
     .force('collision', d3.forceCollide(d => d.r + 14))
     .stop();
 
-  for (let i = 0; i < 300; i++) sim.tick();
-
+  for (let i=0;i<320;i++) sim.tick();
   nodes.forEach(n => {
-    n.x = Math.max(n.r + 10, Math.min(W - n.r - 10, n.x));
-    n.y = Math.max(n.r + 10, Math.min(H - n.r - 10, n.y));
+    n.x = Math.max(n.r+10, Math.min(W-n.r-10, n.x));
+    n.y = Math.max(n.r+10, Math.min(H-n.r-10, n.y));
   });
+
+  // Soft glow filter
+  const glow = defs.append('filter').attr('id','glow').attr('x','-40%').attr('y','-40%').attr('width','180%').attr('height','180%');
+  glow.append('feGaussianBlur').attr('stdDeviation','6').attr('result','blur');
+  const fm = glow.append('feMerge');
+  fm.append('feMergeNode').attr('in','blur');
+  fm.append('feMergeNode').attr('in','SourceGraphic');
 
   const tooltip = document.getElementById('tooltip');
-  const g = svg.append('g').attr('class','bubbles');
 
-  const glow = defs.append('filter').attr('id','glow');
-  glow.append('feGaussianBlur').attr('stdDeviation','4').attr('result','blur');
-  const feMerge = glow.append('feMerge');
-  feMerge.append('feMergeNode').attr('in','blur');
-  feMerge.append('feMergeNode').attr('in','SourceGraphic');
-
-  const node = g.selectAll('g.bubble-g').data(nodes).enter()
-    .append('g').attr('class','bubble-g')
-    .attr('transform', d => `translate(${d.x},${d.y})`)
+  const node = svg.append('g').selectAll('g.bn')
+    .data(nodes).enter()
+    .append('g').attr('class','bn')
+    .attr('transform', d=>`translate(${d.x},${d.y})`)
     .style('cursor','pointer');
 
-  node.append('circle').attr('r', d => d.r + 6).attr('fill','none').attr('stroke', d => d.color).attr('stroke-width',1).attr('opacity',0.25);
-  node.append('circle').attr('class','bubble').attr('r', d => d.r).attr('fill', d => d.color).attr('fill-opacity',0.18).attr('stroke', d => d.color).attr('stroke-width',1.5);
-  node.append('text').attr('class','bubble-label').attr('y',-10).text(d => d.industry.length > 14 ? d.industry.slice(0,12)+'…' : d.industry).style('font-size', d => d.r < 55 ? '9px' : '11px');
-  node.append('text').attr('class','bubble-sublabel').attr('y',8).text(d => `${d.count} role${d.count>1?'s':''}`).style('font-size', d => d.r < 55 ? '8px' : '9px');
-  node.append('text').attr('class','bubble-sublabel').attr('y',22).attr('fill', d => d.color).attr('opacity',0.9).text(d => `avg ${fmt(d.avgSalary)}`).style('font-size', d => d.r < 55 ? '7px' : '9px');
+  // Three concentric rings for depth
+  node.append('circle').attr('r',d=>d.r+10).attr('fill','none').attr('stroke',d=>d.color).attr('stroke-width',0.4).attr('opacity',0.15);
+  node.append('circle').attr('r',d=>d.r+5).attr('fill','none').attr('stroke',d=>d.color).attr('stroke-width',0.6).attr('opacity',0.25);
+  node.append('circle').attr('r',d=>d.r).attr('fill',d=>d.color).attr('fill-opacity',0.1).attr('stroke',d=>d.color).attr('stroke-width',1).attr('filter','url(#glow)');
 
-  node.on('mouseenter', function(event, d) {
-    tooltip.style.display = 'block';
-    tooltip.innerHTML = `<div class="tt-industry">${d.industry}</div><div class="tt-jobs">${d.count} job title${d.count>1?'s':''}</div><div class="tt-salary">Avg: ${fmt(d.avgSalary)}<br>Range: ${fmt(d.minSalary)} – ${fmt(d.maxSalary)}</div>`;
-  })
-  .on('mousemove', function(event) {
-    const rect = container.getBoundingClientRect();
-    let x = event.clientX - rect.left + 14;
-    let y = event.clientY - rect.top - 10;
-    if (x + 210 > W) x -= 220;
-    tooltip.style.left = x + 'px';
-    tooltip.style.top = y + 'px';
-  })
-  .on('mouseleave', function() { tooltip.style.display = 'none'; })
-  .on('click', function(event, d) {
-    svg.selectAll('.selected-ring').remove();
-    if (selectedIndustry === d.industry) {
-      selectedIndustry = null;
-      updatePanel(null, null);
-    } else {
-      selectedIndustry = d.industry;
-      d3.select(this).append('circle').attr('class','selected-ring').attr('r', d.r + 3);
-      updatePanel(d, clusters);
-    }
-  });
+  // Labels
+  node.append('text').attr('class','bubble-label')
+    .attr('y', d=>d.r<48 ? -5 : -11)
+    .style('font-size', d=>d.r<44?'8.5px':d.r<65?'10px':'11.5px')
+    .text(d=>d.industry.length>13?d.industry.slice(0,11)+'…':d.industry);
+
+  node.append('text').attr('class','bubble-sub')
+    .attr('y', d=>d.r<48?6:4)
+    .style('font-size', d=>d.r<44?'7px':'9px')
+    .text(d=>`${d.count} role${d.count>1?'s':''}`);
+
+  node.append('text').attr('class','bubble-sal')
+    .attr('y', d=>d.r<48?17:18)
+    .style('font-size', d=>d.r<44?'8px':'10px')
+    .text(d=>`avg ${fmt(d.avgSalary)}`);
+
+  // Events
+  node
+    .on('mouseenter', function(event,d) {
+      if (isMobile()) return;
+      tooltip.style.display = 'block';
+      tooltip.innerHTML = `<div class="tt-name">${d.industry}</div><div class="tt-count">${d.count} role${d.count>1?'s':''}</div><div class="tt-sal">avg ${fmt(d.avgSalary)} &nbsp;·&nbsp; ${fmt(d.minSalary)}–${fmt(d.maxSalary)}</div>`;
+    })
+    .on('mousemove', function(event) {
+      if (isMobile()) return;
+      const r = container.getBoundingClientRect();
+      let x = event.clientX - r.left + 16;
+      let y = event.clientY - r.top - 8;
+      if (x+230>W) x-=240;
+      tooltip.style.left = x+'px';
+      tooltip.style.top = y+'px';
+    })
+    .on('mouseleave', ()=>{ tooltip.style.display='none'; })
+    .on('click', function(event,d) {
+      svg.selectAll('.selected-ring').remove();
+      if (selectedIndustry === d.industry) {
+        selectedIndustry = null;
+        closePanel();
+      } else {
+        selectedIndustry = d.industry;
+        d3.select(this).append('circle').attr('class','selected-ring').attr('r',d.r+6).attr('stroke',d.color);
+        openPanel(d);
+      }
+    });
 
   const legend = document.getElementById('legend');
   legend.style.display = 'block';
   legend.innerHTML = `
-    <div style="margin-bottom:0.5rem; color:#6b6b85; font-size:0.6rem; text-transform:uppercase; letter-spacing:0.1em;">Bubble size = # of roles</div>
-    <div class="legend-item"><div class="legend-circle" style="width:10px;height:10px;background:#6b6b85"></div> Smaller cluster</div>
-    <div class="legend-item"><div class="legend-circle" style="width:18px;height:18px;background:#6b6b85"></div> Larger cluster</div>
+    <div class="legend-row"><div class="legend-dot" style="width:8px;height:8px"></div>smaller cluster</div>
+    <div class="legend-row"><div class="legend-dot" style="width:16px;height:16px"></div>larger cluster</div>
   `;
 }
 
 render(SAMPLE_DATA);
-
-window.addEventListener('resize', () => {
-  if (currentData.length > 0) render(currentData);
-});
+window.addEventListener('resize', ()=>{ if(currentData.length>0) render(currentData); });
 </script>
 </body>
 </html>
