@@ -649,8 +649,10 @@ function render(data) {
   const legend = document.getElementById('legend');
   legend.style.display = 'block';
   legend.innerHTML = `
-    <div class="legend-row"><div class="legend-dot" style="width:8px;height:8px"></div>smaller cluster</div>
-    <div class="legend-row"><div class="legend-dot" style="width:16px;height:16px"></div>larger cluster</div>
+    <div style="font-size:0.6rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem;">Bubble size</div>
+    <div class="legend-row"><div class="legend-dot" style="width:8px;height:8px"></div>fewer reported roles</div>
+    <div class="legend-row"><div class="legend-dot" style="width:16px;height:16px"></div>more reported roles</div>
+    <div style="margin-top:0.6rem;font-size:0.58rem;color:var(--muted);line-height:1.7;max-width:140px;">The larger the bubble, the more Latinas reported a salary in that field.</div>
   `;
 }
 
